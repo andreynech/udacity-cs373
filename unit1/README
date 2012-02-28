@@ -1,0 +1,7 @@
+Localization example with real robot.
+
+As a robotics platform this example uses hardware and software we are
+developing for our Veter-project:
+https://github.com/veter-team/veter/wiki .  This example example
+illustrate how to perform one-dimensional localization using histogram
+filter we have learned in Unit 1 of the class.
