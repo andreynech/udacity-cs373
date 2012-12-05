@@ -7,19 +7,18 @@
 # etc. without any restrictions. However, I would appreciate if you
 # will mention me as original author.
 
-import sys, Ice
+# Standard set for Ice
+import sys, traceback, Ice
 import time
 
-# Load automatically generated interfaces to communicate with the
-# robot
-Ice.loadSlice("--all vehicle.ice")
-import comtypes
-import vehicleadmin
-import vehicle
+# Sensors and actuators interface definitions
+Ice.loadSlice('-I/usr/share/Ice/slice --all sensors.ice')
+Ice.loadSlice('-I/usr/share/Ice/slice --all actuators.ice')
+import sensors, actuators
 
 
 # Our map
-world = ['wall', 'door', 'door', 'wall', 'wall', 'door', 'wall']
+world = ['wall', 'wall', 'wall', 'door', 'wall', 'door', 'door', 'wall', 'wall', 'wall']
     
 # Sensor and motion constants
 pHit = 0.6
@@ -31,23 +30,16 @@ pUndershoot = 0.1
 
 # Callback interface with function which will be invoked every time
 # the new sensor data is available from the robot
-class SensorDataReceiverI(vehicle.SensorFrameReceiver):
-
-    # Compas returns the value in the 0-255 range. The following
-    # coefficient will be used to convert the measurement to degrees
-    angleCoefficient = 360.0 / 255.0
+class SensorDataReceiverI(sensors.SensorFrameReceiver):
 
     def __init__(self):
         self.sonar = -1
-        self.compass = -1
 
     # Callback function with new sensor data as frame parameter
     def nextSensorFrame(self, frame, current=None):
         for measurement in frame:
-            if measurement.sensorid == 2 and len(measurement.intdata) > 0: # Sonar
-                self.sonar = measurement.intdata[0]
-            elif measurement.sensorid == 3 and len(measurement.intdata) > 0: # Compass
-                self.compass =  SensorDataReceiverI.angleCoefficient * measurement.intdata[0]
+            if measurement.sensorid == 0xE2 and len(measurement.shortdata) > 0: # Sonar
+                self.sonar = measurement.shortdata[0]
 
 
 # Main application class with run() function as an entry point to the
@@ -82,94 +74,59 @@ class Client(Ice.Application):
             q.append(s)
         return q
 
-  
-    # Stop motors
-    def stop(self):
-        # stop
-        frame = []
-        frame.append(vehicle.ActuatorData(0, 50))
-        frame.append(vehicle.ActuatorData(1, 50))
-        self.unit.setActuators(frame)
-        time.sleep(0.2)
-
-
-    # Since our robot has one sonar on the front, we need to turn
-    # towards the wall to make measurements, then turn back and drive
-    # forward. We assume, that we start at the position facing towards
-    # the wall. So the motion step is: turn left, drive forward, turn
-    # right back to the wall.
+    # Drive forward the A4-page width (210mm = 0.21m)
     def makeMotionStep(self):
-        # turn 90 degrees left
-        frame = []
-        frame.append(vehicle.ActuatorData(0, 0))
-        frame.append(vehicle.ActuatorData(1, 70))
-        self.unit.setActuators(frame)
-        time.sleep(1.787)
-
-        self.stop()
-
-        # Drive forward
-        frame = []
-        frame.append(vehicle.ActuatorData(0, 50))
-        frame.append(vehicle.ActuatorData(1, 70))
-        self.unit.setActuators(frame)
-        time.sleep(2.0)
-
-        self.stop()
-
-        # turn 90 degrees right
-        frame = []
-        frame.append(vehicle.ActuatorData(0, 100))
-        frame.append(vehicle.ActuatorData(1, 70))
-        self.unit.setActuators(frame)
-        time.sleep(1.43)
-
-        self.stop()
+        # Create command for the first wheel
+        actuator_cmd1 = actuators.ActuatorData()
+        actuator_cmd1.id = 0
+        actuator_cmd1.speed = 33 # Rotations per second. We are not hurry..
+        # distance should be provided as a fraction of wheel rotation.
+        # Our current wheel has diameter 0.06m
+        actuator_cmd1.distance = 0.21 / (3.14159 * 0.06)
+        # Create the same command for the second wheel
+        actuator_cmd2 = actuators.ActuatorData()
+        actuator_cmd2.id = 1
+        actuator_cmd2.speed = actuator_cmd1.speed
+        actuator_cmd2.distance = actuator_cmd1.distance
+        try:
+            # Send motor commands to vehicle
+            self.chassis.setActuatorsAndWait([actuator_cmd1, actuator_cmd2])
+        except Ice.Exception, ex:
+            print ex
 
 
     # Main application entry point
     def run(self, args):
 
-        # Create proxy interface to our robot (Unit) using parameters
-        # (host, port, etc.)  specified in the configuration file as
-        # Unit.Proxy property
-        self.unit = vehicle.RemoteVehiclePrx.checkedCast(
-            self.communicator().propertyToProxy('Unit.Proxy'))
-        if not self.unit:
-            print self.appName() + ": invalid unit proxy"
+        # Create proxy interface to our robot's chassis (left and
+        # right wheels) using parameters (host, port, etc.) specified
+        # in the configuration file as Chassis.proxy property
+        self.chassis = actuators.ActuatorGroupPrx.checkedCast(
+            self.communicator().propertyToProxy('Chassis.proxy'))
+        if not self.chassis:
+            print self.appName() + ": invalid chassis proxy"
+            return 1
+        admin = self.chassis.getStateInterface()
+        admin.start()
+
+        # Create proxy interface to on-board sonars
+        sonars = sensors.SensorGroupPrx.checkedCast(
+            self.communicator().propertyToProxy('Sonars.proxy'))
+        if not sonars:
+            print self.appName() + ": invalid sonars proxy"
             return 1
 
         # Register and initialize sensor data callback receiver 
         adapter = self.communicator().createObjectAdapter("Callback.Client")
         self.receiver = SensorDataReceiverI()
         receiver_identity = self.communicator().stringToIdentity("callbackReceiver")
-        adapter.add(self.receiver, receiver_identity)
+        receiverObj = adapter.add(self.receiver, receiver_identity)
+        receiverPrx = sensors.SensorFrameReceiverPrx.uncheckedCast(receiverObj)
         adapter.activate()
 
-        receiverPrx = vehicle.SensorFrameReceiverPrx.uncheckedCast(
-            adapter.createProxy(receiver_identity))
-        self.unit.setSensorReceiver(receiverPrx)
-
-        # List and turn on (start) all sensors available on the robot
-        print 'Unit sensors:'
-        for sensor in self.unit.getSensorList():
-            sd = sensor.getDescription()
-            print("%i\t%s\t%s" % (sd.id, sd.description, sd.vendorid))
-            if sd.id != 0:
-                admin = sensor.getAdminInterface()
-                admin.start()
-
-        # List and turn on (start) all actuators (motors) available on
-        # the robot
-        print 'Unit actuators:'
-        for actuator in self.unit.getActuatorList():
-            ad = actuator.getDescription()
-            print("%i\t%s\t%s" % (ad.id, ad.description, ad.type))
-            admin = actuator.getAdminInterface()
-            admin.start()
-
-        # Stop all motors. Just for the case... :-)
-        self.stop()
+        sonars.setSensorReceiver(receiverPrx)
+        admin = sonars.getStateInterface()
+        admin.start()
 
         # Wait untill we get the first sensor measurements
         tries = 0
@@ -179,16 +136,16 @@ class Client(Ice.Application):
             time.sleep(1)
         if self.receiver.sonar == -1:
             print 'No reasonable sensor data received. Exiting.'
-            return
+            return 2
 
         # Ok, now we are ready to start sense/move cycle.
         # Let's make 5 steps and see if we can find our position.
-        for i in range(5):
+        for i in range(9):
             # Just assume that if sonar is sensing something in front
             # of us, then it should be wall, otherwise we are facing
             # the door
             print 'Sonar: ', self.receiver.sonar
-            if self.receiver.sonar < 50:
+            if self.receiver.sonar < 30:
                 Z = 'wall'
             else:
                 Z = 'door'
@@ -199,6 +156,7 @@ class Client(Ice.Application):
             # Update estimated position for the movement
             self.estimatedPosition = self.move(self.estimatedPosition, 1)
             print i, ', ', Z, self.estimatedPosition
+            time.sleep(1)
 
         
 if __name__ == "__main__":
