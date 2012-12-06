@@ -17,11 +17,9 @@ was moving and we were estimating the speed and position of the wall
 relative to our vehicle :-) .
 
 The one second pause between movements is made intentionally to
-highlight that we are not in the continuous space. In practice, it
-might be well possible not to stop motors at the moment where
-measurements are made. In fact, it is very easy to modify the source
-code by commenting out corresponding sleep call to achieve "smooth"
-movement.
+highlight the moments where the measurements were taken. In fact, it
+is very easy to modify the source code by commenting out corresponding
+sleep call to achieve "smooth" movement.
 
 The video of the experiment could be seen on YouTube:
 http://youtu.be/VndTFfvtOaM
