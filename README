@@ -1,4 +1,4 @@
-This repository is for the experimental and demonstration purposes. Programs here are inspired by the CS-373 "Programming a robotic car" online class offered by Udacity.com.
+This repository is for the experimental and demonstration purposes. Programs here are inspired by the CS-373 "Programming a robotic car" online class offered by Udacity.com: http://www.udacity.com/overview/Course/cs373/CourseRev/apr2012 .
 
 The goal was to introduce as less modifications as possible to the code written and explained in the class. However, there were typically two modifications necessary.
 
