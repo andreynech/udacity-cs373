@@ -1,1 +1,31 @@
-This repository is for the experimental and demonstration purposes. Programms here are inspired by the CS-373 "Programming a robotic car" online class offered by Udacity.com.
+This repository is for the experimental and demonstration purposes. Programs here are inspired by the CS-373 "Programming a robotic car" online class offered by Udacity.com.
+
+The goal was to introduce as less modifications as possible to the code written and explained in the class. However, there were typically two modifications necessary.
+
+The first set of modifications is to initialize our remoting infrastructure and get connected to the vehicle. For these purposes we introduce the main application class Client which inherits Ice.Application class. Then we move different functions presented in different units into our Client class. And finally, the main application logic resides in the Client.run() function. This function is invoked from Client.main() function within the following typical start-up code fragment:
+
+if __name__ == "__main__":
+    app = Client()
+    app.main(sys.argv, "client.config")
+
+All the connection parameters (like host and port of the vehicle to connect) are specified in the client.config file.
+
+The second modification is the class which receives information (callbacks) from sonar sensors. We define this class as following:
+
+# Callback interface with function which will be invoked every time
+# the new sensor data is available from the robot
+class SensorDataReceiverI(sensors.SensorFrameReceiver):
+
+    def __init__(self):
+        self.sonar = -1
+
+    # Callback function with new sensor data as frame parameter
+    def nextSensorFrame(self, frame, current=None):
+        for measurement in frame:
+	    # 0xE6 is the ID of the rear sonar. 
+	    # Other sonars have following IDs: 
+	    # 0xE0 - front, 0xE2 - left, 0xE4 - right
+            if measurement.sensorid == 0xE6 and len(measurement.shortdata) > 0: # Sonar
+                self.sonar = measurement.shortdata[0]
+
+Here SensorDataReceiverI.nextSensorFrame(...) function is invoked every time the new ranging information from sonars is available. The corresponding initialization code could be found at the beginning of the Client.run(...) function.
