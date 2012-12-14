@@ -4,6 +4,8 @@ real robot.
 As a robotics platform this example uses hardware and software we are
 developing for our Veter-project:
 https://github.com/veter-team/veter/wiki .
+Corresponding sourcs are available here:
+https://github.com/andreynech/udacity-cs373
 
 In this example, we estimate our own position and speed based on the
 rear sonar measurement (distance to the wall). In the Unit 2, several

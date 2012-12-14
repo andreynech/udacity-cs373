@@ -2,13 +2,16 @@ Localization example with real robot.
 
 As a robotics platform this example uses hardware and software we are
 developing for our Veter-project:
-https://github.com/veter-team/veter/wiki . This example example
-illustrate how to perform one-dimensional localization using histogram
-filter we have learned in Unit 1 of the class. In particular, the left
-sonar measures the distance at each step. If the distance is less than
-threshold (defined as 30cm), then we consider that the measurement
-returns "wall". If the distance is larger than than threshold, then we
-assume that we are in front of the door.
+https://github.com/veter-team/veter/wiki . 
+Corresponding sourcs are available here:
+https://github.com/andreynech/udacity-cs373
+
+This example illustrates how to perform one-dimensional localization
+using histogram filter we have learned in Unit 1 of the class. In
+particular, the left sonar measures the distance at each step. If the
+distance is less than threshold (defined as 30cm), then we consider
+that the measurement returns "wall". If the distance is larger than
+than threshold, then we assume that we are in front of the door.
 
 The one second pause between movements is made intentionally to
 highlight that we are not in the continuous space. In practice, it

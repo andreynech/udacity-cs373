@@ -2,7 +2,7 @@ This repository is for the experimental and demonstration purposes. Programs her
 
 The goal was to introduce as less modifications as possible to the code written and explained in the class. However, there were typically two modifications necessary.
 
-The first set of modifications is to initialize our remoting infrastructure and get connected to the vehicle. For these purposes we introduce the main application class Client which inherits Ice.Application class. Then we move different functions presented in different units into our Client class. And finally, the main application logic resides in the Client.run() function. This function is invoked from Client.main() function within the following typical start-up code fragment:
+The first set of modifications is to initialize our remoting infrastructure and get connected to the vehicle. For these purposes we introduce the main application class Client which inherits Ice.Application class. Then we move different functions presented in corresponding units into our Client class. And finally, the main application logic resides in the Client.run() function. This function is invoked from Client.main() function within the following typical start-up code fragment:
 
 if __name__ == "__main__":
     app = Client()

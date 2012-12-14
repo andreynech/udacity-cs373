@@ -1,0 +1,43 @@
+Robot position estimation using particle filter (CS-373 unit 3) with
+real robot.
+
+As a robotics platform this example uses hardware and software we are
+developing for our Veter-project:
+https://github.com/veter-team/veter/wiki . 
+Corresponding sources are available here:
+https://github.com/andreynech/udacity-cs373
+
+In this example, we estimate robot's position based on the sonar
+measurements. There are four sonars available on the vehicle facing
+forward, backward, left and right. The robot is programmed to follow
+the predefined trajectory through way-points specified in the
+trajectory.dat file. In addition, we defined the room plan as a list
+of "walls" stored in the plan.dat.
+
+At each way-point we are obtaining sonar measurements. Then, for each
+particle we are calculating "ideal" measurement. This calculation is
+done by creating equations for two lines the particle belongs to - the
+one which is parallel to the particle bearing and the one which is
+perpendicular to the particles bearing. Searching the nearest
+intersection between these lines and walls gives us the "ideal"
+measurement. Corresponding functions are implemented in
+lineutils.py. The difference between "ideal" measurement and actual
+sonar data is used to calculate the error and the weight of the
+particle for re-sampling step.
+
+The video of the experiment could be seen on YouTube:
+http://youtu.be/uUOn-zTqZv8
+
+In the small picture, there is a room plan with the trajectory the
+robot attempts to follow (green line). Red lines illustrate sonar
+directions. Points on red lines correspond to the distances measured
+by sonar. These distances are not exactly on the intersection with the
+walls because the robot can not follow the ideal path precisely. Dots
+spread across the room are particles used in the filter. The red cloud
+of particles and camera-like icon represents the final robot position
+estimated by the particle filter. As could be seen on the video, the
+estimated position is very close to the actual robot position. In our
+experiments we were using 500 particles. However, it was hard to see
+just 500 particles on the video, so we recorded sonar measurements and
+than re-run the filter using 10000 particles for the video. Final
+results using 500, 1000 and 10000 particles were identical.

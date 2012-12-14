@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2012 Andrey Nechypurenko (andreynech@gmail.com)
-#
 # The following code is provided as is without ANY warranty.  You can
 # do whatever you want with it, i.e. modify, redistribute,
 # etc. without any restrictions. However, I would appreciate if you
-# will mention me as original author.
+# will mention Udacity folks as original authors and me as the one who
+# adapted it for the real robotics vehicle.
+#   Andrey Nechypurenko (andreynech@gmail.com)
 
 # Standard set for Ice
 import sys, traceback, Ice
@@ -280,5 +280,3 @@ I = matrix([[1., 0.], [0., 1.]]) # identity matrix
 if __name__ == "__main__":
     app = Client()
     app.main(sys.argv, "client.config")
-
-
