@@ -1,0 +1,14 @@
+Motion control with PID-controller and Twiddle algorithm to find PID
+parameters (CS-373 unit 5) with real robot.
+
+As a robotics platform this example uses hardware and software we are
+developing for our Veter-project:
+https://github.com/veter-team/veter/wiki . 
+Corresponding sources are available here:
+https://github.com/andreynech/udacity-cs373
+
+
+The video of the experiment could be seen on YouTube:
+http://youtu.be/uUOn-zTqZv8
+
+In the small picture...
