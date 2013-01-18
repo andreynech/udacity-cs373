@@ -6,8 +6,7 @@ automatically drive the robot as close as possible to the ideal
 straight line trajectory.
 
 As a robotics platform this example uses hardware and software we are
-developing for our Veter-project:
-https://github.com/veter-team/veter/wiki . 
+developing for our Veter-project: http://veterobot.com . 
 Corresponding sources are available here:
 https://github.com/andreynech/udacity-cs373
 
